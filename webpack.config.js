@@ -21,7 +21,7 @@ if (fileSystem.existsSync(secretsPath)) {
 var options = {
   mode: process.env.NODE_ENV || "development",
   entry: {
-    index: path.join(__dirname, "src", "js", "index.js"),
+    index: [path.join(__dirname, "src", "js", "index.js"), path.join(__dirname, "src", "js", "utils.js")],
     popup: path.join(__dirname, "src", "js", "popup.js"),
     options: path.join(__dirname, "src", "js", "options.js"),
     background: path.join(__dirname, "src", "js", "background.js"),

@@ -1,4 +1,7 @@
 import * as PIXI from 'pixi.js'
+import utils from './utils';
+import Cookies from 'js-cookie';
+
 
 import sheep from '../images/sheeps/shBH01.png';
 
@@ -89,11 +92,21 @@ export class MyStage{
 let myStage = new MyStage();
 
 
-myStage.initializeApp()
-.then( response => {
-  console.log( response );
-  
-} )
-.catch( err => {
-  console.error( err );
-} )
+utils.initializeFingerprint()
+.then( resolve => {
+  utils.fetchSheeps()
+  .then( responseSheeps => {
+    console.log( responseSheeps );
+      myStage.initializeApp()
+      .then( response => {
+        console.log( response ); 
+      } )
+      .catch( err => {
+        console.error( err );
+      } )
+  } )
+  .catch( err => {
+    console.error(err);
+  })
+})
+
