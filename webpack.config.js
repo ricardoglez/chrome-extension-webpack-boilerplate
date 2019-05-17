@@ -21,13 +21,38 @@ if (fileSystem.existsSync(secretsPath)) {
 var options = {
   mode: process.env.NODE_ENV || "development",
   entry: {
+    index: path.join(__dirname, "src", "js", "index.js"),
     popup: path.join(__dirname, "src", "js", "popup.js"),
     options: path.join(__dirname, "src", "js", "options.js"),
-    background: path.join(__dirname, "src", "js", "background.js")
+    background: path.join(__dirname, "src", "js", "background.js"),
+    contentScript: path.join(__dirname, "src", "js", "content-script.js")
   },
   output: {
     path: path.join(__dirname, "build"),
     filename: "[name].bundle.js"
+  },
+  resolve: {
+    // These options change how modules are resolved
+    extensions: [
+      '.js',
+      '.jsx',
+      '.json',
+      '.scss',
+      '.css',
+      '.jpeg',
+      '.jpg',
+      '.gif',
+      '.png'
+    ], // Automatically resolve certain extensions
+    modules: [
+        'node_modules',
+        path.resolve( __dirname, './node_modules' ),
+        path.resolve( __dirname, './src' )
+    ],
+    alias: {
+      // Create aliases
+      // images: path.resolve(__dirname, 'src/images') // src/images alias
+    }
   },
   module: {
     rules: [
@@ -45,6 +70,35 @@ var options = {
         test: /\.html$/,
         loader: "html-loader",
         exclude: /node_modules/
+      },
+      {/** Images Rules */
+        test: /\.(jpe?g|png|gif|svg)$/i,
+        loaders: [
+          // 'file-loader?context=src/images/&name=images/[path][name].[ext]',
+          {
+            // images loader
+            loader: 'image-webpack-loader',
+            options: {
+              disable: process.env.NODE_ENV != 'production',
+              mozjpeg: {
+                progressive: true,
+                quality: 65,
+              },
+              optipng: {
+                enabled: true,
+              },
+              pngquant: {
+                quality: '60-80',
+                speed: 3
+              },
+              gifsicle: {
+                interlaced: false
+              },
+            }
+          },
+        ],
+        exclude: /node_modules/,
+        // include: __dirname
       }
     ]
   },
@@ -67,6 +121,11 @@ var options = {
         }))
       }
     }]),
+    new HtmlWebpackPlugin({
+      template: path.join(__dirname, "src", "index.html"),
+      filename: "index.html",
+      chunks: ["index"]
+    }),
     new HtmlWebpackPlugin({
       template: path.join(__dirname, "src", "popup.html"),
       filename: "popup.html",
