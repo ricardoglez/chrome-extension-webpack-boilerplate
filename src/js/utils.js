@@ -4,10 +4,157 @@ const localStorage = window.localStorage;
 import firestore from './firestore';
 
 const utils = {
-  createOwnSheep: () => {
-    console.log('Creat Sheep');
+  mapRange : (value, low1, high1, low2, high2)  => {
+    return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
   },
-  setMySheep: () => {
+  createOwnSheep: ( components, fingerprint ) => {
+    console.log('Creat Sheep');
+    let sheepModel = { 
+      borregoId       : null,
+      numCurl         : null,
+      height          : null,
+      width           : null,
+      size            : null,
+      speed           : null,
+      exponential     : null,
+      position        : {},
+      connected       : false,
+      created         : null,
+      fingerprint     : fingerprint, 
+    };
+
+    let response = { success: false , data: null };
+
+    let promise = null;
+
+
+
+    /**
+     * Set the size of the screen 
+     * @param { Number } width 
+     */
+    const setSizeScreen = ( width ) => {
+      if( width <= 669 ){
+        return 'xs'
+      }
+      else if( width <= 769 && width > 669 ){
+        return 'sm'
+      }
+      else if( width <= 1024 && width > 769 ){
+        return 'md'
+      }
+      else if( width <= 1240 && width > 1224 ){
+        return 'lg'
+      }
+      else {
+        return 'xlg'
+      }
+    };
+
+
+    const setSheepPosition= ( nowDate ) => {
+
+      let position = { xI:null  , yI:null };
+
+      position.yI = utils.mapRange( nowDate.getHours() , 9 , 18 , 1 ,10 );
+      position.xI = utils.randomNumber( -100 , -250  );
+
+      return position 
+    };
+
+    /**
+     * Get Number of curls based on the screen Size
+     * @param { String } size 
+     */
+    const setNumCurl = ( size ) => {
+      switch( size ){
+        case 'xs':
+          return utils.randomNumber( 0,1 );
+        case 'sm':
+          return utils.randomNumber( 2,3 );
+        case 'md':
+          return utils.randomNumber( 4,5 );
+        case 'lg':
+          return utils.randomNumber( 6,7 );
+        case 'xlg':
+          return utils.randomNumber( 8,9 );
+      }
+    }
+
+    promise = new Promise ( ( res, rej )  => {
+
+      try{
+        components.forEach( component => {      
+          switch( component.key){
+            case 'screenResolution':
+              sheepModel.width =  component.value[ 1 ] ; 
+              sheepModel.height =  component.value[ 0 ] ; 
+              sheepModel.size = setSizeScreen( component.value[ 1 ] );
+              sheepModel.numCurl = setNumCurl( sheepModel.size );
+            break;
+            case 'colorDepth':
+              // sheepModel.opacity = this.setSize( component.value );
+            break;
+            case 'deviceMemory':
+              // sheepModel.speed = component.value ;         
+            break;
+            case 'hardwareConcurrency':
+              sheepModel.speed =  component.value ; 
+            break;
+            case 'timezoneOffset':
+              sheepModel.exponential =  component.value;
+            break;
+            case 'fonts':
+              sheepModel.numCurl = component.value.length ;         
+            break;
+            case 'adBlock':
+              // sheepModel.fill = this.setFill( component.value );
+            break;
+            case 'touchSupport':
+              // sheepModel.exponential = sheepModel.exponential*.2;         
+            break;
+            case 'audio':
+            break;
+          }
+        } );
+        
+        console.log( sheepModel);
+
+        let nowDate = new Date();
+
+        sheepModel.created = nowDate;
+
+        sheepModel.position = setSheepPosition( nowDate );
+    
+        sheepModel.borregoId = setNumCurl( sheepModel.size );
+
+
+    
+        response.success = true ;
+        console.log( sheepModel );
+        response.data = sheepModel;
+
+        res( response );
+      }
+      catch( err ){
+        response.data = err;
+        rej( response );
+      }
+    });
+
+    return  promise
+  },
+  randomNumber : (minHeight, maxHeight) => {
+    let r = Math.floor(Math.random() * (maxHeight - minHeight +1 )) + minHeight;
+    // console.log( 'r', r);
+    return r
+  },
+  setMySheep: ( mySheep ) => {
+    if( !mySheep ){
+      console.err(  'MySheep Doesnt exist');
+    };
+
+    console.log( mySheep );
     let sheep = JSON.stringify( mySheep );
     console.log(sheep);
     localStorage.setItem( 'mySheep', sheep );
@@ -38,7 +185,7 @@ const utils = {
   },
   getMySheep: () => {
     let sheep = localStorage.getItem( "mySheep" );
-    // console.log(sheep);
+    console.log(sheep);
     try {
       sheep = JSON.parse( sheep );
       // console.log('Parsed',sheep);
@@ -74,13 +221,12 @@ const utils = {
         console.log('User doesnt own a sheep so create one with fingerprint');
         Fingerprint2.getPromise( {} )
         .then( ( components ) => {
-          console.log( components );
+          // console.log( components );
           let values = components.map( ( component ) => {
-            console.log(component);
+            // console.log(component);
             return component.value
           } );
 
-        let sheepModel = utils.createOwnSheep( components );
 
         let now = new Date();
 
@@ -92,24 +238,29 @@ const utils = {
 
         fingerPrint = murmur;
 
-        let cookieFingerprint = Cookies.get( 'fingerprint' );
-        // console.log( 'CoookieFP', cookieFingerprint, fingerPrint );
-        if ( cookieFingerprint == undefined ) {
-          Cookies.set( 'fingerprint', fingerPrint );
-          localStorage.setItem( 'fingerprint', fingerPrint );
-          localStorage.setItem('created', now);
-          utils.setMySheep( sheepModel );
-        } else {
-          localStorage.setItem( 'fingerprint', fingerPrint );
-          localStorage.setItem('created', now);
-          utils.setMySheep( sheepModel );
-        }
-
-        status.data = {fingerprint: fingerPrint, "fpExist": false, "created": now, "sheepModel": sheepModel, "fPComopnents": components} ;
-        console.log(status);
-
-        resolve( status );
-
+        utils.createOwnSheep( components , fingerPrint )
+        .then( responseModel => {
+          let cookieFingerprint = Cookies.get( 'fingerprint' );
+          // console.log( 'CoookieFP', cookieFingerprint, fingerPrint );
+          if ( cookieFingerprint == undefined ) {
+            Cookies.set( 'fingerprint', fingerPrint );
+            localStorage.setItem( 'fingerprint', fingerPrint );
+            localStorage.setItem('created', now);
+            utils.setMySheep( responseModel.data );
+          } else {
+            localStorage.setItem( 'fingerprint', fingerPrint );
+            localStorage.setItem('created', now);
+            utils.setMySheep( responseModel.data );
+          }
+  
+          status.data = {fingerprint: fingerPrint, "fpExist": false, "created": now, "sheepModel": responseModel.data, "fPComopnents": components} ;
+          console.log(status);
+  
+          resolve( status );
+        } )
+        .catch( error => {
+          console.error( error);
+        } );
       } ).catch( e => {
         console.error( e );
         reject(e);

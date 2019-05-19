@@ -79,9 +79,6 @@ export class MyStage{
 
       return promise
     }
-
-
-
     // load the texture we need
     
   } 
@@ -91,22 +88,35 @@ export class MyStage{
 
 let myStage = new MyStage();
 
+let chainedRequests = [ 
+  utils.initializeFingerprint(), 
+  utils.fetchSheeps(), 
+  myStage.initializeApp()  
+];
 
-utils.initializeFingerprint()
-.then( resolve => {
-  utils.fetchSheeps()
-  .then( responseSheeps => {
-    console.log( responseSheeps );
-      myStage.initializeApp()
-      .then( response => {
-        console.log( response ); 
-      } )
-      .catch( err => {
-        console.error( err );
-      } )
-  } )
-  .catch( err => {
-    console.error(err);
-  })
-})
+Promise.all( chainedRequests  )
+.then( ( [ responseInitFp, responseSheeps, responseInitApp ] )=> { 
+  console.log(responseInitFp, responseSheeps, responseInitApp ); 
+ })
+ .catch( error => {
+   console.error( error );
+ });
+
+// utils.initializeFingerprint()
+// .then( resolve => {
+//   utils.fetchSheeps()
+//   .then( responseSheeps => {
+//     console.log( responseSheeps );
+//       myStage.initializeApp()
+//       .then( response => {
+//         console.log( response ); 
+//       } )
+//       .catch( err => {
+//         console.error( err );
+//       } )
+//   } )
+//   .catch( err => {
+//     console.error(err);
+//   })
+// })
 
