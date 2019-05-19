@@ -4,6 +4,22 @@ const localStorage = window.localStorage;
 import firestore from './firestore';
 
 const utils = {
+  addThisSheep:( sheep ) => {
+    console.log( 'Add this sheep', sheep );
+    return new Promise ( ( resolve, reject ) => {
+      firestore.collection('borregos').add( sheep )
+      .then( response => {
+        console.log( 'Successfully Added' );
+        console.log( response );
+        sheep["id"] = response.id;
+        resolve( { success: true , sheepId: response.id} );
+      } )
+      .catch( err => {
+        console.error(err);
+        reject({ success: false } );
+      });     
+    } )
+  },
   mapRange : (value, low1, high1, low2, high2)  => {
     return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
   },

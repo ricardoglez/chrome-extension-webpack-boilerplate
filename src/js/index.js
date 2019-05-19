@@ -95,12 +95,21 @@ let chainedRequests = [
 ];
 
 Promise.all( chainedRequests  )
-.then( ( [ responseInitFp, responseSheeps, responseInitApp ] )=> { 
+.then( ( [ responseInitFp, responseSheeps, responseInitApp ] )=> {
   console.log(responseInitFp, responseSheeps, responseInitApp ); 
+  if( !responseInitFp.data.fpExist){
+    utils.addThisSheep( responseInitFp.data.sheepModel )
+    .then( responseAddSheep => {
+      console.log( 'add sheep REsponse' , responseAddSheep );
+    } )
+    .catch( err => {
+      console.error(err);
+    } );
+  }
  })
  .catch( error => {
    console.error( error );
- });
+ } );
 
 // utils.initializeFingerprint()
 // .then( resolve => {
