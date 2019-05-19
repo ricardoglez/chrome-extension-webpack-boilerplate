@@ -7,6 +7,10 @@ const utils = {
   addThisSheep:( sheep ) => {
     console.log( 'Add this sheep', sheep );
     return new Promise ( ( resolve, reject ) => {
+      const sheepToServer = { 
+        borrego: sheep,
+
+      } 
       firestore.collection('borregos').add( sheep )
       .then( response => {
         console.log( 'Successfully Added' );
@@ -25,18 +29,21 @@ const utils = {
   },
   createOwnSheep: ( components, fingerprint ) => {
     console.log('Creat Sheep');
-    let sheepModel = { 
-      borregoId       : null,
-      numCurl         : null,
-      height          : null,
-      width           : null,
-      size            : null,
-      speed           : null,
-      exponential     : null,
-      position        : {},
+    let sheepModel = {
+      borrego:{
+        borregoId       : null,
+        numCurl         : null,
+        height          : null,
+        width           : null,
+        size            : null,
+        speed           : null,
+        exponential     : null,
+        position        : {},
+      },
+      borregoId: null, 
       connected       : false,
       created         : null,
-      fingerprint     : fingerprint, 
+      fingerprint     : fingerprint,
     };
 
     let response = { success: false , data: null };
@@ -103,10 +110,10 @@ const utils = {
         components.forEach( component => {      
           switch( component.key){
             case 'screenResolution':
-              sheepModel.width =  component.value[ 1 ] ; 
-              sheepModel.height =  component.value[ 0 ] ; 
-              sheepModel.size = setSizeScreen( component.value[ 1 ] );
-              sheepModel.numCurl = setNumCurl( sheepModel.size );
+              sheepModel.borrego.width =  component.value[ 1 ] ; 
+              sheepModel.borrego.height =  component.value[ 0 ] ; 
+              sheepModel.borrego.size = setSizeScreen( component.value[ 1 ] );
+              sheepModel.borrego.numCurl = setNumCurl( sheepModel.size );
             break;
             case 'colorDepth':
               // sheepModel.opacity = this.setSize( component.value );
@@ -115,13 +122,13 @@ const utils = {
               // sheepModel.speed = component.value ;         
             break;
             case 'hardwareConcurrency':
-              sheepModel.speed =  component.value ; 
+              sheepModel.borrego.speed =  component.value ; 
             break;
             case 'timezoneOffset':
-              sheepModel.exponential =  component.value;
+              sheepModel.borrego.exponential =  component.value;
             break;
             case 'fonts':
-              sheepModel.numCurl = component.value.length ;         
+              sheepModel.borrego.numCurl = component.value.length ;         
             break;
             case 'adBlock':
               // sheepModel.fill = this.setFill( component.value );
@@ -137,12 +144,13 @@ const utils = {
         console.log( sheepModel);
 
         let nowDate = new Date();
+        let borregoId =  setNumCurl( sheepModel.borrego.size );
 
         sheepModel.created = nowDate;
-
-        sheepModel.position = setSheepPosition( nowDate );
+        sheepModel.borrego.position = setSheepPosition( nowDate );
     
-        sheepModel.borregoId = setNumCurl( sheepModel.size );
+        sheepModel.borrego.borregoId = borregoId;
+        sheepModel.borregoId = borregoId;
 
 
     
@@ -174,6 +182,26 @@ const utils = {
     let sheep = JSON.stringify( mySheep );
     console.log(sheep);
     localStorage.setItem( 'mySheep', sheep );
+  },
+  fetchCenterPoint: () => {
+    return new Promise( ( resolve, reject ) => {
+      try{
+        let position = null;
+        firestore.collection('centerPosition')
+        .onSnapshot( (snapshot) => {
+          // console.log('snapshot');
+          // console.log(  snapshot);
+          snapshot.forEach( doc => {
+            position  = doc.data();
+          });
+          resolve( {success: true , data: position} );
+        })
+      }
+      catch( err){
+        console.error( error )
+        reject( err );
+      }
+    });
   },
   fetchSheeps: () => {
     return new Promise( (resolve, reject) => {
@@ -262,11 +290,11 @@ const utils = {
             Cookies.set( 'fingerprint', fingerPrint );
             localStorage.setItem( 'fingerprint', fingerPrint );
             localStorage.setItem('created', now);
-            utils.setMySheep( responseModel.data );
+            utils.setMySheep( responseModel.data.borrego );
           } else {
             localStorage.setItem( 'fingerprint', fingerPrint );
             localStorage.setItem('created', now);
-            utils.setMySheep( responseModel.data );
+            utils.setMySheep( responseModel.data.borrego );
           }
   
           status.data = {fingerprint: fingerPrint, "fpExist": false, "created": now, "sheepModel": responseModel.data, "fPComopnents": components} ;
