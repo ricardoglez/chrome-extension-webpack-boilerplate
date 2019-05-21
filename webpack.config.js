@@ -10,6 +10,8 @@ var webpack = require("webpack"),
 // load the secrets
 var alias = {};
 
+var beautify = require('js-beautify').js_beautify;
+
 var secretsPath = path.join(__dirname, ("secrets." + env.NODE_ENV + ".js"));
 
 var fileExtensions = ["jpg", "jpeg", "png", "gif", "eot", "otf", "svg", "ttf", "woff", "woff2"];
@@ -19,17 +21,16 @@ if (fileSystem.existsSync(secretsPath)) {
 }
 
 var options = {
-  mode: process.env.NODE_ENV || "development",
+  
   entry: {
     index: [path.join(__dirname, "src", "js", "index.js"), path.join(__dirname, "src", "js", "utils.js")],
     popup: path.join(__dirname, "src", "js", "popup.js"),
     options: path.join(__dirname, "src", "js", "options.js"),
     background: path.join(__dirname, "src", "js", "background.js"),
-    contentScript: path.join(__dirname, "src", "js", "content-script.js")
   },
   output: {
     path: path.join(__dirname, "build"),
-    filename: "[name].bundle.js"
+    filename: "[name].js"
   },
   resolve: {
     // These options change how modules are resolved
@@ -114,11 +115,12 @@ var options = {
       from: "src/manifest.json",
       transform: function (content, path) {
         // generates the manifest file using the package.json informations
-        return Buffer.from(JSON.stringify({
+				return Buffer.from( beautify( 
+					JSON.stringify({
           description: process.env.npm_package_description,
           version: process.env.npm_package_version,
           ...JSON.parse(content.toString())
-        }))
+				}), {indent_size: 2}  ) );
       }
     }]),
     new HtmlWebpackPlugin({
@@ -146,6 +148,9 @@ var options = {
 };
 
 if (env.NODE_ENV === "development") {
+  options.devtool = "cheap-module-eval-source-map";
+}
+else {
   options.devtool = "cheap-module-eval-source-map";
 }
 
