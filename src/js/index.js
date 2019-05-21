@@ -23,6 +23,7 @@ export class MyStage{
     this.sheeps = null;
     this.mySheep = null;
     this.centerPoint = null;
+    this.sheepsToRender = [];
 
     this.initializeApp = () => {
       console.log( 'initialize App' );
@@ -70,19 +71,46 @@ export class MyStage{
       } );
     }
 
+    this.findtheAngle = ( xI,yI, xD, yD, type ) => {
+      let angle = null;
+      if( type == 'rad' ){
+       angle = Math.atan2(yD - yI, xD - xI );
+      }
+      else if( type == 'deg' ){
+        angle = Math.atan2(yD - yI, xD - xI) * 180 / Math.PI;
+      } 
+      
+      // console.log( 'angle',angle );
+      return angle
+    }
+
     this.play = ( sheep ) => {
     if( !sheep ){ 
       console.error('Sheep isnt available')
       return null
     }
     console.log( sheep );
+      sheep.rotation =  this.findtheAngle( sheep.x, sheep.y, sheep.xD, sheep.yD, 'rad' ) ;
+      // sheep.rotation =  10 ;z
+      console.log(sheep.rotation);
 
       var dx = sheep.x - sheep.xD;
       var dy = sheep.y - sheep.yD;
-  
-      if (Math.sqrt(dx * dx + dy * dy) <= 5) {
+      console.log('Its herer');
+      console.log('dx',dx);
+      console.log('dy herer',dy);
+      console.log(' herer',Math.sqrt(dx * dx + dy * dy));
+    
+      if (Math.sqrt(dx * dx + dy * dy) <= 50) {
           sheep.x = sheep.xD;
           sheep.y = sheep.yD;
+          // sheep.x = 0
+          // sheep.y = 0
+      }
+      else if( Math.sqrt(dx * dx + dy * dy) >= 800 ){
+        sheep.x = sheep.xI;
+        sheep.y = sheep.yI;
+        sheep.rotation  = this.findtheAngle( sheep.xI , sheep.yI, sheep.xD, sheep.yD, 'rad')
       }
       else {
           sheep.x += 1;
@@ -90,11 +118,15 @@ export class MyStage{
       }
     }
 
-    this.gameLoop = ( sheep ) =>  {
-      console.log( sheep );
+    this.gameLoop = (  ) =>  {
+      console.log('inside gameLoop befor raf' );
       //Loop this function at 60 frames per second
-      // requestAnimationFrame(this.gameLoop);
-      this.state( sheep );
+      requestAnimationFrame( this.gameLoop  );
+      this.sheepsToRender.forEach( sheep => {
+        
+        this.play( sheep );
+      } ); 
+      // this.state( sheep );
     
       // //Render the stage to see the animation
       this.app.renderer.render(this.app.stage);
@@ -102,14 +134,22 @@ export class MyStage{
 
     this.setupPixi = (  resources, files ) => {
       console.log('Setup Pixi');
+      var circle = new PIXI.Graphics();
+
+      circle.beginFill( 0xFFF00 );
+
+      circle.drawEllipse( this.centerPoint.c, this.centerPoint.y ,64,64 )
+      circle.endFill();
+      // var circle = new PIXI.Circle(this.centerPoint.x, this.centerPoint.y, 20);
+      this.app.stage.addChild(circle);
 
 
       files.forEach( f => {
         const sheep = new PIXI.Sprite( resources[ f.fileName ].texture );
-        let state =null;
+        let state = null;
         let newX = f.borrego.position.xI;
         let newY = f.borrego.position.yI;
-        console.log( sheep );
+        console.log( 'Before Add', sheep );
         // sheep.x = this.app.renderer.width / 2;
         // sheep.y = this.app.renderer.height / 2;
         sheep.position.set( newX, newY );
@@ -120,19 +160,21 @@ export class MyStage{
         sheep.xD = this.centerPoint.x;
         sheep.yD = this.centerPoint.y;
 
+        sheep.xI = newX;
+        sheep.yI = newY;
 
         sheep.anchor.x = 1;
         sheep.anchor.y = 0.5;
     
+        this.sheepsToRender = [...this.sheepsToRender, sheep];
+
         this.app.stage.addChild(sheep);
 
-        this.state = this.play;
-
-        console.log( sheep );
-        this.gameLoop( sheep );
 
       } );
-      
+      console.log( this.app.stage );
+
+      this.gameLoop( );
     }
 
     this.renderAvSheeps = ( sheeps ) => {
