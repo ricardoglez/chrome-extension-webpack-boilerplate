@@ -4,6 +4,47 @@
     <meta charset="UTF-8">
     <title></title>
   </head>
+
+  <style>
+    %reset {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html,
+  body {
+    @extend %reset;
+    width: 100%;
+    height: 100%;
+  }
+
+  .pixi-container {
+    cursor: default;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    opacity: 1;
+    z-index: 1;
+    &,
+    canvas {
+      &,
+      &:before,
+      &:after {
+        @extend %reset;
+        position: relative;
+      }
+    }
+    canvas {
+      display: block;
+    }
+  }
+
+  .pixi-container.isMoving {
+    cursor: move;
+  }
+</style>
   <body>
     <section id='myContent'>
     </section>

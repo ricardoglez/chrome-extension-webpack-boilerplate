@@ -1,7 +1,7 @@
 import utils from './utils';
 import MyStage from './MyStage';
 
-let myStage = new MyStage();
+let myStage = new MyStage( '#myContent');
 
 let chainedRequests = [ 
   utils.initializeFingerprint(), 
