@@ -12,7 +12,8 @@
 			"run_at": "document_end"
     }
   ],
-  "content_security_policy": "script-src 'self' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com; object-src 'self'; connect-src 'self' wss://*.firebaseio.com;",
+  
+  "content_security_policy": "script-src 'self' https://cdn.firebase.com https://*.firebaseio.com; object-src 'self'",
 	"web_accessible_resources": [
 		"*.png",
 		"styles.css"		

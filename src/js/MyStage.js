@@ -17,41 +17,33 @@ import sheep9 from '../images/sheeps/shBH10.png';
 
 
 class MyStage{
-  constructor( selector ){
+  constructor( selector , isExtension){
+  
+  if( isExtension ){
+    console.log('extension');
+    let injectContainer = document.createElement('section');
+    injectContainer.setAttribute( 'id' , 'myContent');
+    document.body.appendChild( injectContainer );
+  }
 
     console.log('Selector', selector);
-    this.state = null;
-    this.app = null;
+    // this.state = null;
+    // this.app = null;
     this.sheeps = null;
     this.mySheep = null;
     this.centerPoint = null;
     this.sheepsToRender = [];
+    this.container = null;
+    this.canvas = null;
+    this.devicePixelRatio = null;
+    this.bounds = null;
+    this.renderer = null;
+    this.stage = null;
+    this.loader = new PIXI.Loader();
 
-
-    this.container = document.querySelector(selector);
-    this.canvas = document.createElement('canvas');
-    this.container.classList.add('pixi-container');
-    this.container.appendChild(this.canvas);
-    this.devicePixelRatio = window.devicePixelRatio;
-    this.bounds = [this.container.offsetWidth, this.container.offsetHeight];
-    
-    this.stage = new PIXI.Container();
-    this.renderer = PIXI.autoDetectRenderer(this.bounds[0], this.bounds[1], {
-      antialias: true,
-      backgroundColor: 0x1099bb,
-      resolution: this.devicePixelRatio,
-      view: this.canvas,
-    });
-    
-    window.addEventListener('resize', () => {
-      requestAnimationFrame(() => this.onResize());
-    }, false);
-    
-    requestAnimationFrame((time) => this.step(time));
-
-    this.addDots();
-    this.onResize();
-    this.startDots();
+    // this.addDots();
+    // this.onResize();
+    // this.startDots();
 
     this.initializeApp = () => {
       console.log( 'initialize App' );
@@ -59,23 +51,49 @@ class MyStage{
       let promise = new Promise( (res, rej ) => {
         let status = { success: false }
         try{
-          let w = document.body.clientWidth ;
-          let h = document.body.clientHeight;
-          this.app = new PIXI.Application({
-            antialias: true,   
-            resolution: 1 ,
-            transparent: true,
-          })
-        
-          this.app.renderer.autoResize =  true ;
-          this.app.renderer.resize(w, 800);
+          this.container = document.querySelector(selector);
+          this.canvas = document.createElement('canvas');
+          this.container.classList.add('pixi-container');
+          // this.container.appendChild(this.canvas);
+          this.devicePixelRatio = window.devicePixelRatio;
+          this.bounds = [this.container.offsetWidth, this.container.offsetHeight];
+          console.log('container size', this.bounds)
+          this.renderer = PIXI.autoDetectRenderer(this.bounds[0], this.bounds[1], {
+            antialias: true,
+            transparent:true,
+            resolution: this.devicePixelRatio,
+            view: this.canvas,
+          });
+          this.renderer.resize( this.bounds[0], this.bounds[1]);
+          this.renderer.backgroundColor = '#fffff';
+          this.renderer.transparent = true;
 
-          // console.log(w, h);
-          this.app.renderer.backgroundColor = '#fff';
+          this.container.appendChild( this.renderer.view );
+
+          this.stage = new PIXI.Container();
           
-          // The application will create a canvas element for you that you
-          // can then insert into the DOM
-          document.body.appendChild(this.app.view);
+          window.addEventListener('resize', () => {
+            // requestAnimationFrame(() => this.onResize());
+          }, false);
+          
+          // requestAnimationFrame((time) => this.step(time));
+          // let w = document.body.clientWidth ;
+          // let h = document.body.clientHeight;
+          // this.app = new PIXI.Application({
+          //   antialias: true,   
+          //   resolution: 1 ,
+          //   transparent: true,
+          // })
+        
+          // this.app.renderer.autoResize =  true ;
+          // this.app.renderer.resize(w, 800);
+
+          // // console.log(w, h);
+          // this.app.renderer.backgroundColor = '#fff';
+          
+          // // The application will create a canvas element for you that you
+          // // can then insert into the DOM
+          // document.body.appendChild(this.app.view);
           status.success = true;
           return  res(  status );
         }
@@ -119,9 +137,6 @@ class MyStage{
       console.error('Sheep isnt available')
       return null
     }
-
-
-
     console.log( sheep );
       sheep.rotation =  this.findtheAngle( sheep.x, sheep.y, sheep.xD, sheep.yD, 'rad' ) ;
       // sheep.rotation =  10 ;z
@@ -140,7 +155,7 @@ class MyStage{
           // sheep.x = 0
           // sheep.y = 0
       }
-      else if( Math.sqrt(dx * dx + dy * dy) >= 800 ){
+      else if( Math.sqrt(dx * dx + dy * dy) >= this.bounds[0] ){
         sheep.x = sheep.xI;
         sheep.y = sheep.yI;
         sheep.rotation  = this.findtheAngle( sheep.xI , sheep.yI, sheep.xD, sheep.yD, 'rad')
@@ -164,7 +179,7 @@ class MyStage{
       // this.state( sheep );
     
       // //Render the stage to see the animation
-      this.app.renderer.render(this.app.stage);
+      this.renderer.render(this.stage);
     }
 
     this.setupPixi = (  resources, files ) => {
@@ -176,7 +191,7 @@ class MyStage{
       circle.drawEllipse( this.centerPoint.c, this.centerPoint.y ,64,64 )
       circle.endFill();
       // var circle = new PIXI.Circle(this.centerPoint.x, this.centerPoint.y, 20);
-      this.app.stage.addChild(circle);
+      this.stage.addChild(circle);
 
 
       files.forEach( f => {
@@ -206,11 +221,11 @@ class MyStage{
     
         this.sheepsToRender = [...this.sheepsToRender, sheep];
 
-        this.app.stage.addChild(sheep);
+        this.stage.addChild(sheep);
 
 
       } );
-      console.log( this.app.stage );
+      console.log( this.stage );
 
       this.gameLoop( );
     }
@@ -232,7 +247,7 @@ class MyStage{
         } );
       } );
 
-      this.app.loader.load(
+      this.loader.load(
         (loader, resources) => {
       //     // This creates a texture from a 'sheep.png' image
          console.log(  'Loading' );
@@ -282,7 +297,7 @@ class MyStage{
         let currentSheep = this.selectSheep( sheepObject.borregoId );
         console.log( currentSheep );
         try{
-          this.app.loader.add( currentSheep )
+          this.loader.add( currentSheep )
           status.success = true;
           status.data = currentSheep;
           return res( status )
@@ -299,110 +314,110 @@ class MyStage{
 
   }
 
-  onResize(){
-    this.bounds = [this.container.offsetWidth, this.container.offsetHeight];
-    this.canvas.style.width = `${this.bounds[0]}px`;
-    this.canvas.style.height = `${this.bounds[1]}px`;
-    this.canvas.width = this.bounds[0];
-    this.canvas.height = this.bounds[1];
-    this.dots.x = (this.bounds[0] / 2) - (this.maxX / 2);
-    this.dots.y = (this.bounds[1] / 2) - ((this.spacer * this.totalDots) / 2);
-    this.renderer.resize(this.canvas.width, this.canvas.height);
-    this.renderer.render(this.stage);
-  }
+//   onResize(){
+//     this.bounds = [this.container.offsetWidth, this.container.offsetHeight];
+//     this.canvas.style.width = `${this.bounds[0]}px`;
+//     this.canvas.style.height = `${this.bounds[1]}px`;
+//     this.canvas.width = this.bounds[0];
+//     this.canvas.height = this.bounds[1];
+//     this.dots.x = (this.bounds[0] / 2) - (this.maxX / 2);
+//     this.dots.y = (this.bounds[1] / 2) - ((this.spacer * this.totalDots) / 2);
+//     this.renderer.resize(this.canvas.width, this.canvas.height);
+//     this.renderer.render(this.stage);
+//   }
   
-  step(timestamp) {
-    console.log('Step');
-    requestAnimationFrame((time) => this.step(time));
-    this.renderer.render(this.stage);
-  }
+//   step(timestamp) {
+//     console.log('Step');
+//     requestAnimationFrame((time) => this.step(time));
+//     this.renderer.render(this.stage);
+//   }
   
-  startDots() {
-    console.log('Start Dots');
-    const now = performance.now();
-    for (let i = 0; i < this.totalDots; i++) {
-      this.dots.children[i].animateComponent.start(now);
-    }
-  }
+//   startDots() {
+//     console.log('Start Dots');
+//     const now = performance.now();
+//     for (let i = 0; i < this.totalDots; i++) {
+//       this.dots.children[i].animateComponent.start(now);
+//     }
+//   }
 
-  addDots() {
-    console.log('Add Dots');
-    this.dotSize = 10;
-    this.totalDots = 10;
-    this.duration = 1400;
-    this.minX = 0;
-    this.maxX = 200;
-    this.spacer = (this.dotSize * 2) + 3;
-    this.delay = this.duration / this.totalDots;
-    this.dots = new PIXI.Container();
-    this.stage.addChild(this.dots);
-    for (let i = 0; i < this.totalDots; i++) {
-      let dot = new Dot(this.dotSize);
-      dot.x = 0;
-      dot.y = i * this.spacer;
-      dot.animateComponent = new AnimateComponent(dot, this.delay * i, this.duration, this.minX, this.maxX);
-      this.dots.addChild(dot);
-    }
-  }
-}
-/**
- * 
- */
+//   addDots() {
+//     console.log('Add Dots');
+//     this.dotSize = 10;
+//     this.totalDots = 10;
+//     this.duration = 1400;
+//     this.minX = 0;
+//     this.maxX = 200;
+//     this.spacer = (this.dotSize * 2) + 3;
+//     this.delay = this.duration / this.totalDots;
+//     this.dots = new PIXI.Container();
+//     this.stage.addChild(this.dots);
+//     for (let i = 0; i < this.totalDots; i++) {
+//       let dot = new Dot(this.dotSize);
+//       dot.x = 0;
+//       dot.y = i * this.spacer;
+//       dot.animateComponent = new AnimateComponent(dot, this.delay * i, this.duration, this.minX, this.maxX);
+//       this.dots.addChild(dot);
+//     }
+//   }
+// }
+// /**
+//  * 
+//  */
 
-class Dot {
-  constructor(size) {
-    const dot = new PIXI.Graphics();
-    dot.lineStyle(0);
-    dot.beginFill(0xFF0099, 0.6);
-    dot.drawCircle(0, 0, size);
-    dot.endFill();
-    return dot;
-  }
-}
+// class Dot {
+//   constructor(size) {
+//     const dot = new PIXI.Graphics();
+//     dot.lineStyle(0);
+//     dot.beginFill(0xFF0099, 0.6);
+//     dot.drawCircle(0, 0, size);
+//     dot.endFill();
+//     return dot;
+//   }
+// }
 
-class AnimateComponent {
-  constructor(displayObject, delay, duration, minX, maxX) {
-    this.displayObject = displayObject;
-    this.delay = delay;
-    this.duration = duration;
-    this.minX = minX;
-    this.maxX = maxX;
-  }
+// class AnimateComponent {
+//   constructor(displayObject, delay, duration, minX, maxX) {
+//     this.displayObject = displayObject;
+//     this.delay = delay;
+//     this.duration = duration;
+//     this.minX = minX;
+//     this.maxX = maxX;
+//   }
   
-  start(timestamp) {
-    if (this.isAnimating) return;
-    const displayObject = this.displayObject;
-    const now = timestamp + this.delay;
-    setTimeout(() => {
-      this.tween = new TWEEN.Tween({x: this.minX})
-        .to({x: this.maxX}, this.duration)
-        .repeat(Infinity)
-        .yoyo(true)
-        .easing(TWEEN.Easing.Quartic.InOut)
-        .onUpdate(function onUpdate() {
-          displayObject.x = this.x;
-        })
-        .start(now);
-      this.isAnimating = true;
-      this.step(now);
-    }, this.delay);
-  }
+//   start(timestamp) {
+//     if (this.isAnimating) return;
+//     const displayObject = this.displayObject;
+//     const now = timestamp + this.delay;
+//     setTimeout(() => {
+//       this.tween = new TWEEN.Tween({x: this.minX})
+//         .to({x: this.maxX}, this.duration)
+//         .repeat(Infinity)
+//         .yoyo(true)
+//         .easing(TWEEN.Easing.Quartic.InOut)
+//         .onUpdate(function onUpdate() {
+//           displayObject.x = this.x;
+//         })
+//         .start(now);
+//       this.isAnimating = true;
+//       this.step(now);
+//     }, this.delay);
+//   }
   
-  stop() {
-    if (!this.isAnimating) return;
-    this.isAnimating = false;
-    this.tween.stop();
-    this.reset();
-  }
+//   stop() {
+//     if (!this.isAnimating) return;
+//     this.isAnimating = false;
+//     this.tween.stop();
+//     this.reset();
+//   }
   
-  reset() {
-    this.displayObject.x = 0;
-  }
+//   reset() {
+//     this.displayObject.x = 0;
+//   }
   
-  step(timestamp) {
-    if (this.isAnimating) requestAnimationFrame((time) => this.step(time));
-    this.tween.update(timestamp);
-  }
+//   step(timestamp) {
+//     if (this.isAnimating) requestAnimationFrame((time) => this.step(time));
+//     this.tween.update(timestamp);
+//   }
 }
 
 export default MyStage;

@@ -2,8 +2,15 @@ import Fingerprint2 from 'fingerprintjs2';
 import Cookies from 'js-cookie';
 const localStorage = window.localStorage;
 import firestore from './firestore';
+import firebase from 'firebase';
+
 
 const utils = {
+  initializeFirebase: () => {
+    return new Promise( (resolve , rejest) => {
+      
+    } )
+  },
   addThisSheep:( sheep ) => {
     console.log( 'Add this sheep', sheep );
     return new Promise ( ( resolve, reject ) => {
